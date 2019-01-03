@@ -1,0 +1,68 @@
+#!/bin/bashs
+
+# Colorisation.
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias dir='dir --color=auto'
+    alias vdir='vdir --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# Git aliases.
+alias gita="git add"
+alias gita.='git add .'
+alias gitag='git add .gitignore'
+alias gitb="git branch"
+alias gitbd="git branch -D"
+alias gitc="git clone"
+alias gitco="git checkout"
+alias gitcob="git checkout -b"
+alias gitcom="git commit"
+alias gitcomm="git commit -m"
+alias gitcoma="git commit --amend"
+alias gitcoman='git commit --amend --no-edit'
+alias gitd="git diff"
+alias gitf='git fetch'
+alias gitm="git merge"
+alias gitpl='git pull'
+alias gitplo='git pull origin'
+alias gitpu='git push'
+alias gitpuf='git push --force'
+alias gitpuo='git push origin'
+alias gitpuom='git push origin master'
+alias gitr='git reset'
+alias gitra='git remote add'
+alias gitrbi='git rebase -i'
+alias gitrm="git rm"
+alias gitrmr="git rm -r"
+alias gitrmrf="git rm -rf"
+alias gits='git status'
+alias gitsta='git stash'
+alias gitstap='git stash pop'
+alias gitstad='git stash drop'
+alias gitl='git log'
+
+# Misspellings
+alias killal="killall"
+alias kilall="killall"
+
+# Shortforms
+alias less="less -R"
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias lsl='ls -l'
+alias md=mkdir
+alias "dnr=dotnet run"
+alias "dnrp=dotnet run --project"
+alias "dnb=dotnet build"
+
+# Other aliases
+alias pytest="pytest -s"
+[[ "x$(which untar 2>&1)"  = "" ]] && alias "untar=tar xf"
+[[ "x$(which xunzip 2>&1)" = "" ]] && alias "xunzip=xz -d"
+alias "kubectl=kubectl.exe"
+alias update_system="apt update && apt upgrade && apt dist-upgrade && apt autoremove && sync"

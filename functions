@@ -1,0 +1,161 @@
+#!/bin/bash
+
+function gen_password { uuidgen | sha256sum | awk '{print $1}' | base64 | tr -d '\n' | xargs echo | xclip; }
+
+function b64d { echo -n $* | base64 -d; }
+
+function b64 { echo -n $* | base64 ; }
+
+# Rename a file
+function rename {
+	local pathname=$(dirname "$1")
+	local from_name=$(basename "$1")
+	local to_name=$(basename "$2")
+	mv "${pathname}/${from_name}" "${pathname}/${to_name}"
+}
+
+# Reload .bashrc
+function reload {
+	. "$HOME/.bashrc"
+}
+
+# Run some command once per line of input.
+function run_once_per_line {
+    while read line; do
+        $* ${line}
+    done
+}
+
+# Swap the contents of two files.
+function swap { local file1="$1"; local file2="$2"; local temp=$(mktemp); cat "${file1}" >"$temp"; cat "${file2}" >"${file1}"; cat "${temp}" >"${file2}"; unlink "${temp}"; }
+
+# Kill a process if it is running for too long.
+# Args:
+#  1. The process name.
+#  2. The number of seconds to wait.
+# Returns: 0 if the process is successfully killed, otherwise 1.
+# Note: The named process is only killed if it has the same PID as when the function was called.
+function unstick {
+	local name=$1
+	local timeout=$2
+	local pid=$(pidof "$name")
+	if [[ $? -ne 0 ]]; then
+		return 1
+	fi
+	local prev_time=$(date +%s)
+	while true; do
+		local curr_time=$(date +%s)
+		local elapsed=$[curr_time - $prev_time]
+		if [[ $elapsed -ge $timeout ]] && [[ $(pidof "$name") = "$pid" ]]; then
+            echo "$0: killing $name (PID: $pid) after $elapsed seconds"
+			kill -9 $pid
+			return $?
+        elif [[ $(pidof "$name") != "$pid" ]]; then
+            return 1
+		fi
+	done
+}
+
+# Append an alias to the bashrc and reload the bashrc
+function add_alias {
+	echo "alias \"$*\"" >>~/.bash/aliases
+	reload
+}
+
+# Count how many times a path appears in PATH
+function count_path {
+	echo "$PATH" | tr ':' '\n' | grep "$1" | wc -l
+}
+
+# Append something to the PATH if not already in it.
+function append_path {
+	if [[ $(count_path "$1") -eq 0 ]]; then
+		echo "export PATH=\"\$PATH:$1\"" >>~/.bash/env
+		reload
+	fi
+}
+
+# Prepend something to the PATH if not already in it.
+function prepend_path {
+	if [[ $(count_path "$1") -eq 0 ]]; then
+		echo "export PATH=\"$1:\$PATH\"" >>~/.bash/env
+		reload
+	fi
+}
+
+function _sizeof_usage_helper {
+	cat <<EOF
+Usage: sizeof [options] file [more files]
+
+Options:
+	-h,--help	Show this help and quit.
+	-b		Print size in bytes (default).
+	-k		Print size in kiB.
+	-m		Print size in MiB.
+	-g		Print size in GiB.
+	-t		Print size in TiB.
+	-p		Print size in PiB.
+	-e		Print size in EiB.
+	-z		Print size in ZiB.
+	-y		Print size in YiB.
+
+Unit switches (bkmgtpezy) affect output only for files which come later in the arguments list, and are overridden by successive switches. This means they can be interspersed with filenames to use different units for each file.
+
+Example:
+	sizeof -b file1 -m file2 file3 -g file4
+EOF
+}
+
+# Get the size of a file.
+# Usage: sizeof [options] file [more files]
+function sizeof {
+	if [[ $# -eq 0 ]]; then
+		_sizeof_usage_helper >&2
+		return 1
+	fi
+	local unit="B"
+	for arg in $@; do
+		case "$arg" in
+			-h|--help)	_sizeof_usage_helper ; return 0 ;;
+			-b)		unit="B" ;;
+			-k)		unit="k" ;;
+			-m)		unit="M" ;;
+			-g)		unit="G" ;;
+			-t)		unit="T" ;;
+			-p)		unit="P" ;;
+			-e)		unit="E" ;;
+			-z)		unit="Z" ;;
+			-y)		unit="Y" ;;
+			*)
+				local size=$(stat -c %s "$arg")
+				case $unit in
+					b|B) echo $size $unit $arg ;;
+					k|K) echo $[size/1024] ${unit}iB $arg ;;
+					m|M) echo $[size/(1024*1024)] ${unit}iB $arg ;;
+					g|G) echo $[size/(1024*1024*1024)] ${unit}iB $arg ;;
+					t|T) echo $[size/(1024*1024*1024*1024)] ${unit}iB $arg ;;
+					p|P) echo $[size/(1024*1024*1024*1024*1024)] ${unit}iB $arg ;;
+					e|E) echo $[size/(1024*1024*1024*1024*1024*1024)] ${unit}iB $arg ;;
+					z|Z) echo $[size/(1024*1024*1024*1024*1024*1024*1024)] ${unit}iB $arg ;;
+					y|Y) echo $[size/(1024*1024*1024*1024*1024*1024*1024*1024)] ${unit}iB $arg ;;
+					*)
+						echo "$0: Bug: No case for unit=\"$unit\"" >&2
+						return 0
+						;;
+				esac
+				;;
+		esac
+	done
+}
+
+# Time a command over COUNT iterations. If COUNT is not passed as an environment variable then it defaults to 1000
+function timeit {
+	local i=0
+	if [[ "$COUNT" = "" ]]; then
+		local COUNT=1000
+	fi
+	time ( while [[ $i -lt $COUNT ]]; do
+		$*
+		i=$[i + 1]
+	done 1>/dev/null 2>/dev/null )
+}
