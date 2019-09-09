@@ -7,5 +7,5 @@
 ## Installation
 
 ```sh
-wget "https://github.com/ChrisSwinchatt/BashRC/blob/master/install.sh" | bash
+curl https://raw.githubusercontent.com/ChrisSwinchatt/BashRC/master/install.sh | bash
 ```
