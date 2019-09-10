@@ -72,14 +72,21 @@ function ps1_function {
     [[ "${PS1_PREV_TIME}" = "" || ${PS1_PREV_TIME} -eq 0 ]] && PS1_PREV_TIME=${curr_time}
     local time_delta=$[curr_time - ${PS1_PREV_TIME}]
     export PS1_PREV_TIME=${curr_time}
-    
+
     local user_color=$(if [[ $EUID -eq 0 ]]; then echo "${COLOR_RED}"; else echo "${COLOR_GREEN}"; fi)
     local prompt_color=$(if [[ ${status} -eq 0 ]]; then echo "${COLOR_GREEN}"; else echo "${COLOR_RED}"; fi)
 
     local git_branch=$(git branch 2>/dev/null | grep \* | tr -d '* ')
     if [[ "${git_branch}" != "" ]]; then
-        if [[ $(git diff --stat) != "" ]]; then
-            git_branch="${git_branch}*"
+        local git_status=$(git status --porcelain)
+        local new_files=$(echo -e "${git_status}" | grep '?? ' | wc -l)
+        local add_files=$(echo -e "${git_status}" | grep 'A  ' | wc -l)
+        local del_files=$(echo -e "${git_status}" | grep 'D  ' | wc -l)
+        local ad_files=$(echo -e "${git_status}" | grep 'AD ' | wc -l)
+        if [[ $new_files -gt 0 ]] || [[ $del_files -gt 0 ]] || [[ $ad_files -gt 0 ]]; then
+             git_branch="${git_branch}*"
+        elif [[ $add_files -gt 0 ]]; then
+            git_branch="${git_branch}+"
         fi
         git_branch="${COLOR_RESET}(${COLOR_CYAN}${git_branch}${COLOR_RESET})"
     fi
