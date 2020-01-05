@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#[[ -z ${BASHRC_CONFIG_PS1_USE_GIT_BRANCH+x} ]] && export BASHRC_CONFIG_PS1_USE_GIT_BRANCH=1
+#[[ -z ${BASHRC_CONFIG_PS1_SHOW_DELTA_TIME+x} ]] && export BASHRC_CONFIG_PS1_SHOW_DELTA_TIME=1
+
 function ansii_escape {
     echo "\033[$*"
 }
@@ -68,32 +71,36 @@ export COLOR_RESET=$(ps1_escape_color   "reset")
 function ps1_function {
     local status=$?
     local curr_time=$(date +%s)
-
-    [[ "${PS1_PREV_TIME}" = "" || ${PS1_PREV_TIME} -eq 0 ]] && PS1_PREV_TIME=${curr_time}
-    local time_delta=$[curr_time - ${PS1_PREV_TIME}]
-    export PS1_PREV_TIME=${curr_time}
+    local time_delta=
+    if [[ $BASHRC_CONFIG_PS1_SHOW_DELTA_TIME -eq 1 ]]; then
+        [[ "${PS1_PREV_TIME}" = "" ]] || [[ ${PS1_PREV_TIME} -eq 0 ]] && PS1_PREV_TIME=${curr_time}
+        time_delta=$[curr_time - ${PS1_PREV_TIME}]
+        export PS1_PREV_TIME=${curr_time}
+    fi
 
     local user_color=$(if [[ $EUID -eq 0 ]]; then echo "${COLOR_RED}"; else echo "${COLOR_GREEN}"; fi)
     local prompt_color=$(if [[ ${status} -eq 0 ]]; then echo "${COLOR_GREEN}"; else echo "${COLOR_RED}"; fi)
-
-    local git_branch=$(git branch 2>/dev/null | grep \* | tr -d '* ')
-    if [[ "${git_branch}" != "" ]]; then
-        local git_status=$(git status --porcelain)
-        local new_files=$(echo -e "${git_status}" | grep '?? ' | wc -l)
-        local add_files=$(echo -e "${git_status}" | grep 'A  ' | wc -l)
-        local del_files=$(echo -e "${git_status}" | grep 'D  ' | wc -l)
-        local ad_files=$(echo -e "${git_status}" | grep 'AD ' | wc -l)
-        if [[ $new_files -gt 0 ]] || [[ $del_files -gt 0 ]] || [[ $ad_files -gt 0 ]]; then
-             git_branch="${git_branch}*"
-        elif [[ $add_files -gt 0 ]]; then
-            git_branch="${git_branch}+"
+    local git_branch=
+    if [[ $BASHRC_CONFIG_PS1_USE_GIT_BRANCH -eq 1 ]]; then
+        git_branch=$(git branch 2>/dev/null | grep \* | tr -d '* ')
+        if [[ "${git_branch}" != "" ]]; then
+            local git_status=$(git status --porcelain)
+            local new_files=$(echo -e "${git_status}" | grep '?? ' | wc -l)
+            local add_files=$(echo -e "${git_status}" | grep 'A  ' | wc -l)
+            local del_files=$(echo -e "${git_status}" | grep 'D  ' | wc -l)
+            local ad_files=$(echo -e "${git_status}" | grep 'AD ' | wc -l)
+            if [[ $new_files -gt 0 ]] || [[ $del_files -gt 0 ]] || [[ $ad_files -gt 0 ]]; then
+                git_branch="${git_branch}*"
+            elif [[ $add_files -gt 0 ]]; then
+                git_branch="${git_branch}+"
+            fi
+            git_branch="${COLOR_RESET}(${COLOR_CYAN}${git_branch}${COLOR_RESET})"
         fi
-        git_branch="${COLOR_RESET}(${COLOR_CYAN}${git_branch}${COLOR_RESET})"
     fi
 
     local working_dir="${COLOR_BROWN}\w${COLOR_RESET}"
-    local curr_time="${COLOR_MAGENTA}$(date '+%T.%3N')"
-    local time_delta="${COLOR_RESET}(${COLOR_RED}${time_delta}s${COLOR_RESET})"
+    curr_time="${COLOR_MAGENTA}$(date '+%T.%3N')"
+    [[ $BASHRC_CONFIG_PS1_SHOW_DELTA_TIME -eq 1 ]] && time_delta="${COLOR_RESET}(${COLOR_RED}${time_delta}s${COLOR_RESET})"
     local user_host="${user_color}\u${COLOR_RESET}@${COLOR_BLUE}\h"
     local prompt="${prompt_color}\$${COLOR_RESET}"
 
