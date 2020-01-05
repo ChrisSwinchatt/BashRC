@@ -159,3 +159,12 @@ function timeit {
 		i=$[i + 1]
 	done 1>/dev/null 2>/dev/null )
 }
+
+function pacmanSs {
+	pacman -Ss "$@" | while read package; do read description; echo -e "$package\t$description"; done
+}
+
+
+function get_branch {
+	git branch 2>/dev/null | grep \* | tr -d '* '
+}
