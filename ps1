@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#[[ -z ${BASHRC_CONFIG_PS1_USE_GIT_BRANCH+x} ]] && export BASHRC_CONFIG_PS1_USE_GIT_BRANCH=1
-#[[ -z ${BASHRC_CONFIG_PS1_SHOW_DELTA_TIME+x} ]] && export BASHRC_CONFIG_PS1_SHOW_DELTA_TIME=1
+[[ -z ${BASHRC_CONFIG_PS1_USE_GIT_BRANCH} ]] && export BASHRC_CONFIG_PS1_USE_GIT_BRANCH=1
+[[ -z ${BASHRC_CONFIG_PS1_SHOW_DELTA_TIME} ]] && export BASHRC_CONFIG_PS1_SHOW_DELTA_TIME=1
 
 function ansii_escape {
     echo "\033[$*"
@@ -68,6 +68,23 @@ export COLOR_BROWN=$(ps1_escape_color   "brown"   "fg")
 export COLOR_MAGENTA=$(ps1_escape_color "magenta" "fg" 1)
 export COLOR_RESET=$(ps1_escape_color   "reset")
 
+function get_branch {
+	git branch 2>/dev/null | grep \* | tr -d '* '
+}
+
+function get_status {
+    local git_status=$(git status --porcelain)
+    local new_files=$(echo -e "${git_status}" | grep '?? ' | wc -l)
+    local add_files=$(echo -e "${git_status}" | grep 'A  ' | wc -l)
+    local del_files=$(echo -e "${git_status}" | grep 'D  ' | wc -l)
+    local ad_files=$(echo -e "${git_status}" | grep 'AD ' | wc -l)
+    if [[ $new_files -gt 0 ]] || [[ $del_files -gt 0 ]] || [[ $ad_files -gt 0 ]]; then
+        echo '*'
+    elif [[ $add_files -gt 0 ]]; then
+	echo '+'
+    fi
+}
+
 function ps1_function {
     local status=$?
     local curr_time=$(date +%s)
@@ -82,19 +99,9 @@ function ps1_function {
     local prompt_color=$(if [[ ${status} -eq 0 ]]; then echo "${COLOR_GREEN}"; else echo "${COLOR_RED}"; fi)
     local git_branch=
     if [[ $BASHRC_CONFIG_PS1_USE_GIT_BRANCH -eq 1 ]]; then
-        git_branch=$(git branch 2>/dev/null | grep \* | tr -d '* ')
+        git_branch=$(get_branch)
         if [[ "${git_branch}" != "" ]]; then
-            local git_status=$(git status --porcelain)
-            local new_files=$(echo -e "${git_status}" | grep '?? ' | wc -l)
-            local add_files=$(echo -e "${git_status}" | grep 'A  ' | wc -l)
-            local del_files=$(echo -e "${git_status}" | grep 'D  ' | wc -l)
-            local ad_files=$(echo -e "${git_status}" | grep 'AD ' | wc -l)
-            if [[ $new_files -gt 0 ]] || [[ $del_files -gt 0 ]] || [[ $ad_files -gt 0 ]]; then
-                git_branch="${git_branch}*"
-            elif [[ $add_files -gt 0 ]]; then
-                git_branch="${git_branch}+"
-            fi
-            git_branch="${COLOR_RESET}(${COLOR_CYAN}${git_branch}${COLOR_RESET})"
+            git_branch="${COLOR_RESET}(${COLOR_CYAN}${git_branch}$(get_status ${git_branch})${COLOR_RESET})"
         fi
     fi
 
