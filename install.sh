@@ -31,6 +31,8 @@ function echov
     [[ $VERBOSE -eq 1 ]] && echo $*
 }
 
+echo "${name}: Start installing .bashrc"
+
 if [[ $# -gt 0 ]]; then
     while [[ $# -gt 0 ]]; do
         case $1 in
