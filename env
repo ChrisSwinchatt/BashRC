@@ -4,6 +4,8 @@ export EDITOR="nano"
 export DOTNET_CLI_TELEMETRY_OPTOUT='1'
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
+export ORIGINAL_PATH="$PATH"
+
 __PREFIX_PATH="/opt/local/bin:${HOME}/opt/cross/bin:${HOME}/.local/bin:${HOME}/.local/intellij/bin"
 __PREFIX_LD_LIBRARY_PATH="/usr/local/lib:${HOME}/.local/lib"
 __PREFIX_C_INCLUDE_PATH="/usr/local/include:${HOME}/.local/include"

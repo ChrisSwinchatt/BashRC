@@ -168,3 +168,15 @@ function pacmanSs {
 function get_branch {
 	git branch 2>/dev/null | grep \* | tr -d '* '
 }
+
+function dir_usage { 
+    du --max-depth 1 -m "$1" 2> /dev/null | sort -n
+}
+
+renice_all () 
+{ 
+    for pid in $(pidof $2);
+    do
+        renice $1 $pid;
+    done
+}
