@@ -1,4 +1,4 @@
-#!/bin/bashs
+#!/bin/bash
 
 # Colorisation.
 if [ -x /usr/bin/dircolors ]; then
@@ -78,3 +78,4 @@ alias "gitrb=git rebase"
 alias "gitrbc=git rebase --continue"
 alias "gitcp=git cherry-pick"
 alias "pip2=python2 -m pip"
+alias "k9=kill -9"

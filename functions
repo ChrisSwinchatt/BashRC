@@ -173,7 +173,7 @@ function dir_usage {
     du --max-depth 1 -m "$1" 2> /dev/null | sort -n
 }
 
-renice_all () 
+function renice_all
 { 
     for pid in $(pidof $2);
     do
@@ -214,4 +214,24 @@ function ghclone {
 
 function finger_window { 
 	xprop _NET_WM_PID | sed 's/_NET_WM_PID(CARDINAL) = //'
+}
+
+function do_wpa_supplicant
+{
+	# Authenticate with sudo so our future sudo calls go through without requesting a password
+	if [[ $EUID -ne 0 ]]; then
+		echo "Need root authentication to run wpa_supplicant"
+		sudo echo
+	fi
+
+	# Kill any running wpa_supplicant
+	sudo killall -9 wpa_supplicant >/dev/null 2>&1
+
+	# Delete the control directory if it exists
+	if [[ -f '/var/run/wpa_supplicant' ]]; then 
+		sudo rm -rf '/var/run/wpa_supplicant'
+	fi
+
+	# Start a new wpa_supplicant
+	sudo bash -c 'nohup /usr/bin/wpa_supplicant -i wlo1 -c /etc/wpa_supplicant/wpa_supplicant.conf >/var/log/wpa_supplicant.log 2>/dev/null' &
 }
