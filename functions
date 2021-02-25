@@ -180,3 +180,38 @@ renice_all ()
         renice $1 $pid;
     done
 }
+
+function touch_sudo { sudo -s echo; }
+
+function nano
+{ 
+    /usr/bin/nano $*
+    local ret=$?
+    clear
+    return $?
+}
+
+function restart_network
+{
+	svcs="nordvpnd dhcpcd wpa_supplicant NetworkManager systemd-networkd"
+	svcs2="";
+	for svc in $svcs; do 
+		echo -n "Stopping service ${svc}... "
+		sudo systemctl stop $svc;
+		svcs2="$svc $svcs2";
+		echo "Done"
+	done;
+	for svc in $svcs2; do
+		echo -n "Starting service ${svc}... "
+		sudo systemctl start $svc;
+		echo "Done"
+	done
+}
+
+function ghclone { 
+    git clone https://github.com/$1
+}
+
+function finger_window { 
+	xprop _NET_WM_PID | sed 's/_NET_WM_PID(CARDINAL) = //'
+}
