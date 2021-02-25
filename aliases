@@ -1,4 +1,4 @@
-#!/bin/bashs
+#!/bin/bash
 
 # Colorisation.
 if [ -x /usr/bin/dircolors ]; then
@@ -64,7 +64,7 @@ alias "dnb=dotnet build"
 alias pytest="pytest -s"
 [[ "x$(which untar 2>&1)"  = "" ]] && alias "untar=tar xf"
 [[ "x$(which xunzip 2>&1)" = "" ]] && alias "xunzip=xz -d"
-alias "kubectl=kubectl.exe"
+#alias "kubectl=kubectl.exe"
 alias "..=cd .."
 alias "...=cd..."
 alias "gitpusu=git push --set-upstream origin"
@@ -74,3 +74,4 @@ alias "pacman=pacman --color=always"
 alias "stack=stack --allow-different-user"
 alias "gitpusuo=git push --set-upstream origin"
 alias "yay=yay --color=auto"
+alias "k9=kill -9"
