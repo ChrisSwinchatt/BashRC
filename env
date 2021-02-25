@@ -6,34 +6,27 @@ export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quo
 
 export ORIGINAL_PATH="$PATH"
 
-__PREFIX_PATH="/opt/local/bin:${HOME}/opt/cross/bin:${HOME}/.local/bin:${HOME}/.local/intellij/bin"
+__PREFIX_PATH="./node_modules/.bin:/opt/local/bin:${HOME}/opt/cross/bin:${HOME}/.local/bin:${HOME}/.local/intellij/bin:/home/chris/.dotnet/tools"
 __PREFIX_LD_LIBRARY_PATH="/usr/local/lib:${HOME}/.local/lib"
 __PREFIX_C_INCLUDE_PATH="/usr/local/include:${HOME}/.local/include"
 __PREFIX_CPLUS_INCLUDE_PATH="/usr/local/include:${HOME}/.local/include"
 
-if [[ "$PATH" = "" ]]; then
-    export PATH="$__PREFIX_PATH"
-else
-    export PATH="$__PREFIX_PATH:$PATH"
-fi
 
-if [[ "$LD_LIBRARY_PATH" = "" ]]; then
-    export LD_LIBRARY_PATH="$__PREFIX_LD_LIBRARY_PATH"
-else
-    export LD_LIBRARY_PATH="$__PREFIX_LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
-fi
+function __env_prefix {
+	local env_var="$1"
+	local prefix="$2"
+	if [[ $(echo "${env_var}" | grep "${prefix}") != "" ]]; then
+		echo "${env_var}"
+	elif [[ "${env_var}" = "" ]]; then
+		echo "${prefix}"
+	else
+		echo "${prefix}:${env_var}"
+	fi
+}
 
-if [[ "$C_INCLUDE_PATH" = "" ]]; then
-    export C_INCLUDE_PATH="$__PREFIX_C_INCLUDE_PATH"
-else
-    export C_INCLUDE_PATH="$__PREFIX_C_INCLUDE_PATH:$C_INCLUDE_PATH"
-fi
-
-if [[ "$CPLUS_INCLUDE_PATH" = "" ]]; then
-    export CPLUS_INCLUDE_PATH="$__PREFIX_CPLUS_INCLUDE_PATH"
-else
-    export CPLUS_INCLUDE_PATH="$__PREFIX_CPLUS_INCLUDE_PATH:$CPLUS_INCLUDE_PATH"
-fi
-
+export PATH=$(__env_prefix "$PATH" "$__PREFIX_PATH")
+export LD_LIBRARY_PATH=$(__env_prefix "$LD_LIBRARY_PATH" "$__PREFIX_LD_LIBRARY_PATH")
+export C_INCLUDE_PATH=$(__env_prefix "$C_INCLUDE_PATH" "$__PREFIX_C_INCLUDE_PATH")
+export CPLUS_INCLUDE_PATH=$(__env_prefix "$CPLUS_INCLUDE_PATH" "$__PREFIX_CPLUS_INCLUDE_PATH")
 
 [[ "x$(uname -r | grep Microsoft)" != "x" ]] && export DISPLAY=":0"
